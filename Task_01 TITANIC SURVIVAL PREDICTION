@@ -1,1 +1,81 @@
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
+# Load Titanic dataset (replace 'titanic.csv' with your dataset path)
+print("Loading the dataset...")
+df = pd.read_csv('Titanic-Dataset.csv')
+print(f"Dataset loaded successfully with {df.shape[0]} rows and {df.shape[1]} columns.\n")
+
+# Display basic dataset information
+print("First 5 rows of the dataset:")
+print(df.head())
+print("\nDataset Info:")
+print(df.info())
+print("\n")
+
+# Drop unnecessary columns
+print("Dropping unnecessary columns: PassengerId, Name, Ticket, Cabin...\n")
+df.drop(['PassengerId', 'Name', 'Ticket', 'Cabin'], axis=1, inplace=True)
+
+# Handling missing values
+print("Handling missing values...")
+df['Age'].fillna(df['Age'].median(), inplace=True)
+df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
+print("Missing values filled for 'Age' and 'Embarked'.\n")
+
+# Encoding categorical variables
+print("Encoding categorical variables: 'Sex' and 'Embarked'...")
+le_gender = LabelEncoder()
+df['Sex'] = le_gender.fit_transform(df['Sex'])  # Male = 1, Female = 0
+
+le_embarked = LabelEncoder()
+df['Embarked'] = le_embarked.fit_transform(df['Embarked'])  # Encodes 'C', 'Q', 'S'
+print("Encoding completed.\n")
+
+# Splitting data into features and target
+X = df.drop('Survived', axis=1)  # Features
+y = df['Survived']               # Target
+
+# Splitting into training and testing sets
+print("Splitting data into training and testing sets (80%-20%)...\n")
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Feature scaling
+print("Scaling the features using StandardScaler...\n")
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Building and training the Logistic Regression model
+print("Training the Logistic Regression model...\n")
+model = LogisticRegression(random_state=42)
+model.fit(X_train, y_train)
+
+# Making predictions
+print("Making predictions on the test set...\n")
+y_pred = model.predict(X_test)
+
+# Model Evaluation
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy:.2f}\n")
+
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+print("\nConfusion Matrix:")
+conf_matrix = confusion_matrix(y_test, y_pred)
+print(conf_matrix)
+
+# Formatting confusion matrix for better understanding
+print("\nFormatted Confusion Matrix:")
+print(f"True Negatives (Did not survive, correctly predicted): {conf_matrix[0][0]}")
+print(f"False Positives (Did not survive, incorrectly predicted as survived): {conf_matrix[0][1]}")
+print(f"False Negatives (Survived, incorrectly predicted as not survived): {conf_matrix[1][0]}")
+print(f"True Positives (Survived, correctly predicted): {conf_matrix[1][1]}\n")
+
+print("Prediction and evaluation complete!")
